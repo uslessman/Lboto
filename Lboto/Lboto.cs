@@ -103,7 +103,6 @@ namespace Lboto
 
             AddTasks();
 
-            Events.Start();
             PluginManager.Start();
             RoutineManager.Start();
             _taskManager.Start();

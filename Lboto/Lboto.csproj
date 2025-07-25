@@ -83,11 +83,13 @@
     <Compile Include="Helpers\CachedObjects\CachedObject.cs" />
     <Compile Include="Helpers\CachedObjects\CachedTransition.cs" />
     <Compile Include="Helpers\CachedObjects\CachedWorldItem.cs" />
+    <Compile Include="Helpers\ClassExtensions.cs" />
     <Compile Include="Helpers\CommonActions\TpToHideout.cs" />
     <Compile Include="Helpers\Enums.cs" />
     <Compile Include="Helpers\Events.cs" />
-    <Compile Include="Helpers\Extensions.cs" />
     <Compile Include="Helpers\Global\CombatAreaCache.cs" />
+    <Compile Include="Helpers\Global\ComplexExplorer.cs" />
+    <Compile Include="Helpers\Global\Travel.cs" />
     <Compile Include="Helpers\Inventories.cs" />
     <Compile Include="Helpers\ItemsSoldArgs.cs" />
     <Compile Include="Helpers\MapNames.cs" />
@@ -95,10 +97,12 @@
     <Compile Include="Helpers\PlayerAction.cs" />
     <Compile Include="Helpers\Positions\Position.cs" />
     <Compile Include="Helpers\Positions\StaticPositions.cs" />
+    <Compile Include="Helpers\Positions\TgtPosition.cs" />
     <Compile Include="Helpers\Positions\WalkablePosition.cs" />
     <Compile Include="Helpers\Positions\WorldPosition.cs" />
     <Compile Include="Helpers\Tasks\ClearCursorTask.cs" />
     <Compile Include="Helpers\Tasks\FallbackTask.cs" />
+    <Compile Include="Helpers\Tgt.cs" />
     <Compile Include="Helpers\Utils\Interval.cs" />
     <Compile Include="Helpers\Wait.cs" />
     <Compile Include="Helpers\World.cs" />
