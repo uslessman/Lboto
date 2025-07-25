@@ -77,9 +77,20 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helpers\AreaChangedArgs.cs" />
+    <Compile Include="Helpers\AreaInfo.cs" />
+    <Compile Include="Helpers\CachedObjects\CachedItem.cs" />
+    <Compile Include="Helpers\CachedObjects\CachedObject.cs" />
+    <Compile Include="Helpers\CachedObjects\CachedTransition.cs" />
+    <Compile Include="Helpers\CachedObjects\CachedWorldItem.cs" />
     <Compile Include="Helpers\CommonActions\TpToHideout.cs" />
+    <Compile Include="Helpers\Enums.cs" />
+    <Compile Include="Helpers\Events.cs" />
     <Compile Include="Helpers\Extensions.cs" />
+    <Compile Include="Helpers\Global\CombatAreaCache.cs" />
     <Compile Include="Helpers\Inventories.cs" />
+    <Compile Include="Helpers\ItemsSoldArgs.cs" />
+    <Compile Include="Helpers\MapNames.cs" />
     <Compile Include="Helpers\Move.cs" />
     <Compile Include="Helpers\PlayerAction.cs" />
     <Compile Include="Helpers\Positions\Position.cs" />
@@ -90,6 +101,7 @@
     <Compile Include="Helpers\Tasks\FallbackTask.cs" />
     <Compile Include="Helpers\Utils\Interval.cs" />
     <Compile Include="Helpers\Wait.cs" />
+    <Compile Include="Helpers\World.cs" />
     <Compile Include="Lboto.cs" />
     <Compile Include="LbotoGui.xaml.cs">
       <DependentUpon>LbotoGui.xaml</DependentUpon>

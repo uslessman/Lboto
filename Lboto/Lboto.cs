@@ -3,6 +3,8 @@ using DreamPoeBot.Loki.Bot.Pathfinding;
 using DreamPoeBot.Loki.Common;
 using DreamPoeBot.Loki.Coroutine;
 using DreamPoeBot.Loki.Game;
+using Lboto.Helpers;
+using Lboto.Helpers.Global;
 using Lboto.Helpers.Tasks;
 using log4net;
 using Newtonsoft.Json;
@@ -72,10 +74,10 @@ namespace Lboto
 
         public void Start()
         {
-            //Explorer.CurrentDelegate = user => CombatAreaCache.Current.Explorer.BasicExplorer;
+            Explorer.CurrentDelegate = user => CombatAreaCache.Current.Explorer.BasicExplorer;
 
             //ComplexExplorer.ResetSettingsProviders();
-           // ComplexExplorer.AddSettingsProvider("FollowBot", MapBotExploration, ProviderPriority.Low);
+            //ComplexExplorer.AddSettingsProvider("FollowBot", MapBotExploration, ProviderPriority.Low); Need to configure
 
             // Cache all bound keys.
             LokiPoe.Input.Binding.Update();
@@ -101,7 +103,7 @@ namespace Lboto
 
             AddTasks();
 
-            //Events.Start();
+            Events.Start();
             PluginManager.Start();
             RoutineManager.Start();
             _taskManager.Start();
@@ -133,6 +135,8 @@ namespace Lboto
 
         public void Tick()
         {
+            Events.Tick();
+            CombatAreaCache.Tick();
             _taskManager.Tick();
             PluginManager.Tick();
             RoutineManager.Tick();

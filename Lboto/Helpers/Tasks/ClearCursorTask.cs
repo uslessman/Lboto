@@ -77,7 +77,7 @@ namespace Lboto.Helpers.Tasks
 
         public string Name => "ClearCursorTask";
         public string Description => "Places any item left on the cursor into the inventory.";
-        public string Author => "by OpenAI";
+        public string Author => "";
         public string Version => "1.0";
     }
 }
