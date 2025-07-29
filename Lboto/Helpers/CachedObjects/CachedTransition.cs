@@ -2,7 +2,7 @@
 using DreamPoeBot.Loki.Game.Objects;
 using Lboto.Helpers.Positions;
 
-namespace Lboto.Helpers.CachedObjects
+namespace Lboto.Helpers
 {
     public class CachedTransition : CachedObject
     {
@@ -18,6 +18,14 @@ namespace Lboto.Helpers.CachedObjects
             Type = type;
             Destination = destination;
             Name = Object?.Name;
+        }
+
+        public CachedTransition(AreaTransition areaTransition, TransitionType type) 
+            : base(areaTransition.Id, new WalkablePosition(areaTransition.Name, areaTransition.Position))
+        {
+            Type = type;
+            Destination = areaTransition.Destination;
+            Name = areaTransition.Name;
         }
 
         public new AreaTransition Object => GetObject() as AreaTransition;

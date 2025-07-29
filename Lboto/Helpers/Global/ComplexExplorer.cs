@@ -1,9 +1,7 @@
 ﻿using DreamPoeBot.Loki.Bot;
 using DreamPoeBot.Loki.Common;
 using DreamPoeBot.Loki.Game;
-using Lboto.Helpers.CachedObjects;
 using Lboto.Helpers.Positions;
-using Lboto.Helpers.Utils;
 using log4net;
 using System;
 using System.Collections.Generic;

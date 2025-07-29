@@ -3,7 +3,7 @@ using DreamPoeBot.Loki.Game;
 using DreamPoeBot.Loki.Game.Objects;
 using Lboto.Helpers.Positions;
 
-namespace Lboto.Helpers.CachedObjects
+namespace Lboto.Helpers
 {
     public class CachedObject : IEquatable<CachedObject>
     {

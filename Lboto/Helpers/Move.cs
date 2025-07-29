@@ -5,7 +5,6 @@ using DreamPoeBot.Loki.Bot;
 using DreamPoeBot.Loki.Common;
 using DreamPoeBot.Loki.Game;
 using DreamPoeBot.Loki.Game.Objects;
-using Lboto.Helpers.Utils;
 
 namespace Lboto.Helpers
 {

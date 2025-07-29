@@ -1,7 +1,6 @@
 ﻿using DreamPoeBot.Common;
 using DreamPoeBot.Loki.Common;
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace Lboto.Helpers.Positions

@@ -12,7 +12,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Lboto.Helpers.CommonActions
+namespace Lboto.Helpers.Tasks
 {
     public static class TpToHideout
     {

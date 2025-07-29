@@ -7,17 +7,9 @@ using Lboto.Helpers;
 using Lboto.Helpers.Global;
 using Lboto.Helpers.Tasks;
 using log4net;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
-using static DreamPoeBot.Loki.Bot.GridExplorer;
-using static DreamPoeBot.Loki.Game.GameData.DatPassiveSkillMasteryWrapper;
 
 namespace Lboto
 {
@@ -148,12 +140,12 @@ namespace Lboto
         private void AddTasks()
         {
 
-            //_taskManager.Add(new ClearCursorTask());
+            _taskManager.Add(new ClearCursorTask());
             //_taskManager.Add(new DefenseAndFlaskTask());
             //_taskManager.Add(new LootItemTask());
             //_taskManager.Add(new PreCombatFollowTask());
-            //_taskManager.Add(new CombatTask(50));
-            //_taskManager.Add(new PostCombatHookTask());
+            _taskManager.Add(new CombatTask(50));
+            _taskManager.Add(new PostCombatHookTask());
             //_taskManager.Add(new LevelGemsTask());
             //_taskManager.Add(new CombatTask(-1));
             //_taskManager.Add(new CastAuraTask());

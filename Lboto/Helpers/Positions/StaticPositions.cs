@@ -1,7 +1,6 @@
 ﻿using DreamPoeBot.Common;
 using DreamPoeBot.Loki.Bot;
 using DreamPoeBot.Loki.Common;
-using DreamPoeBot.Loki.Game.GameData;
 
 namespace Lboto.Helpers.Positions
 {

@@ -79,12 +79,19 @@
   <ItemGroup>
     <Compile Include="Helpers\AreaChangedArgs.cs" />
     <Compile Include="Helpers\AreaInfo.cs" />
+    <Compile Include="Helpers\CachedObjects\CachedRitualAltar.cs" />
     <Compile Include="Helpers\CachedObjects\CachedItem.cs" />
     <Compile Include="Helpers\CachedObjects\CachedObject.cs" />
+    <Compile Include="Helpers\CachedObjects\CachedStrongbox.cs" />
     <Compile Include="Helpers\CachedObjects\CachedTransition.cs" />
     <Compile Include="Helpers\CachedObjects\CachedWorldItem.cs" />
     <Compile Include="Helpers\ClassExtensions.cs" />
-    <Compile Include="Helpers\CommonActions\TpToHideout.cs" />
+    <Compile Include="Helpers\CurrencyNames.cs" />
+    <Compile Include="Helpers\Global\TrackMobLogic.cs" />
+    <Compile Include="Helpers\Tasks\CombatTask.cs" />
+    <Compile Include="Helpers\Tasks\LootItemTask.cs" />
+    <Compile Include="Helpers\Tasks\PostCombatHookTask.cs" />
+    <Compile Include="Helpers\Tasks\TpToHideout.cs" />
     <Compile Include="Helpers\Enums.cs" />
     <Compile Include="Helpers\Events.cs" />
     <Compile Include="Helpers\Global\CombatAreaCache.cs" />

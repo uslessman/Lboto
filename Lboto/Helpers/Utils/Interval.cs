@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Lboto.Helpers.Utils
+namespace Lboto.Helpers
 {
     public class Interval
     {

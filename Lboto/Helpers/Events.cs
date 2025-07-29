@@ -1,8 +1,9 @@
-﻿using System;
-using DreamPoeBot.Loki.Game;
+﻿using DreamPoeBot.Loki.Game;
 using DreamPoeBot.Loki.Game.GameData;
 using Lboto.Helpers.CachedObjects;
 using Lboto.Helpers.Global;
+using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Lboto.Helpers
 {
@@ -112,5 +113,20 @@ namespace Lboto.Helpers
             _lastCombatArea = null;
             _wasDead = false;
         }
+        
+        [SuppressMessage("ReSharper", "MemberHidesStaticFromOuterClass")]
+        public static class Messages
+        {
+            public const string IngameBotStart = "ingame_bot_start_event";
+            public const string AreaChanged = "area_changed_event";
+            public const string CombatAreaChanged = "combat_area_changed_event";
+            public const string PlayerDied = "player_died_event";
+            public const string PlayerResurrected = "player_resurrected_event";
+            public const string PlayerLeveled = "player_leveled_event";
+            public const string ItemLootedEvent = "item_looted_event";
+            public const string ItemStashedEvent = "item_stashed_event";
+            public const string ItemsSoldEvent = "items_sold_event";
+        }
     }
+    
 }

@@ -6,7 +6,7 @@ using Lboto.Helpers.Positions;
 using System.Linq;
 using DreamPoeBot.Loki.Models;
 
-namespace Lboto.Helpers.CachedObjects
+namespace Lboto.Helpers
 {
     public class CachedWorldItem : CachedObject
     {
@@ -20,25 +20,21 @@ namespace Lboto.Helpers.CachedObjects
             Rarity = rarity;
         }
 
+        public CachedWorldItem(WorldItem worldItem)
+        : base(worldItem.Item.Id, new WalkablePosition(worldItem.Item.Name, worldItem.Item.WorldItemPosition))
+        {
+            Size = worldItem.Item.Size;
+            Rarity = worldItem.Item.Rarity;
+        }
+
+        public Vector2 LabelPos => Object == null ? Vector2.Zero : Object.WorldItemLabel.Coordinate;
+
         public new WorldItem Object
         {
             get
             {
-                var wIts = GameController.Instance.Game.IngameState.IngameUi.ItemsOnGroundLabels.Where(x =>
-                    x != null &&
-                    x.ItemOnGround != null).ToList();
-                if (wIts.Count <= 0) return null;
-                foreach (var it in wIts)
-                {
-                    var wIt = new WorldItem(new EntityWrapper(it.ItemOnGround.Address));
-                    if (!wIt.IsValid)
-                        continue;
-                    if (wIt.Id != Id)
-                        continue;
-                    return wIt;
-                }
-
-                return null;
+                NetworkObject obj = GetObject();
+                return obj as WorldItem;
             }
         }
     }
