@@ -301,5 +301,10 @@ namespace Lboto.Helpers
             }
             return closest;
         }
+
+        public static bool IsDivinationCard(this Item i)
+        {
+            return i.Class == "DivinationCard" || i.Metadata.Contains("DivinationCard") || i.RenderArt.Contains("Divination");
+        }
     }
 }

@@ -27,6 +27,11 @@ namespace Lboto.Helpers
         Error,
         Unavailable,
     }
-
+    public enum PauseTypeEnum
+    {
+        StashPauseProbability,
+        TownMovePause,
+        OtherPauseType // Добавь другие типы пауз, если они есть
+    }
 
 }

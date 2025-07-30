@@ -42,7 +42,8 @@ namespace Lboto
 
         public void Initialize()
         {
-            
+            LbotoSettings.Instance.MapTabs.Add("~price 333 divine");
+            LbotoSettings.Instance.CurrencyTabs.Add("Coin");
         }
 
         public async Task<LogicResult> Logic(Logic logic)

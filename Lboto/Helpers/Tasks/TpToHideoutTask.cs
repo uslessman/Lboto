@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Lboto.Helpers.Tasks
 {
-    public static class TpToHideout
+    public static class TpToHideoutTask
     {
 
         private static readonly log4net.ILog Log = Logger.GetLoggerInstanceForType();
