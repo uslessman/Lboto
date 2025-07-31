@@ -88,6 +88,7 @@
     <Compile Include="Helpers\CachedObjects\CachedWorldItem.cs" />
     <Compile Include="Helpers\ClassExtensions.cs" />
     <Compile Include="Helpers\CurrencyNames.cs" />
+    <Compile Include="Helpers\Global\ResurrectionLogic.cs" />
     <Compile Include="Helpers\Global\TrackMobLogic.cs" />
     <Compile Include="Helpers\Mapping\CachedMaps.cs" />
     <Compile Include="Helpers\Mapping\InfluenceHelper.cs" />

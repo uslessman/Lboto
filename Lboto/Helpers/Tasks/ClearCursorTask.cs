@@ -13,7 +13,7 @@ namespace Lboto.Helpers.Tasks
 
         public async Task<bool> Run()
         {
-            Log.Debug("[ClearCursorTask Run]");
+            Log.Debug("[ClearCursorTask] Run");
             var mode = LokiPoe.InGameState.CursorItemOverlay.Mode;
 
             if (mode == LokiPoe.InGameState.CursorItemModes.VirtualMove ||
@@ -69,7 +69,10 @@ namespace Lboto.Helpers.Tasks
 
         public async Task<LogicResult> Logic(Logic logic) => LogicResult.Unprovided;
 
-        public void Start() { }
+        public void Start() 
+        {
+            Log.Debug("[ClearCursorTask] Started");
+        }
 
         public void Tick() { }
 

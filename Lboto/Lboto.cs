@@ -107,6 +107,8 @@ namespace Lboto
             RoutineManager.Start();
             _taskManager.Start();
 
+            Log.Debug($"[Start] {BotManager.Current.Name} {_taskManager.ToString()}");
+
             foreach (var plugin in PluginManager.EnabledPlugins)
             {
                 Log.Debug($"[Start] The plugin {plugin.Name} is enabled.");
@@ -134,12 +136,17 @@ namespace Lboto
 
         public void Tick()
         {
+            if (_coroutine == null)
+            {
+                _coroutine = new Coroutine(() => MainCoroutine());
+            }
+
             Events.Tick();
             CombatAreaCache.Tick();
-            foreach (var _task in _taskManager.TaskList)
-            {
-                Log.Debug(_task.Name);
-            }
+            //foreach (var _task in _taskManager.TaskList)
+            //{
+            //    Log.Debug(_task.Name);
+            //}
             _taskManager.Tick();
             PluginManager.Tick();
             RoutineManager.Tick();
@@ -148,7 +155,7 @@ namespace Lboto
         public TaskManager GetTaskManager()
         {
             return _taskManager;
-        }
+        }   
         private void AddTasks()
         {
 
@@ -167,6 +174,80 @@ namespace Lboto
             //_taskManager.Add(new OpenWaypointTask());
             //_taskManager.Add(new JoinPartyTask());
             _taskManager.Add(new FallbackTask());
+        }
+
+        private async Task MainCoroutine()
+        {
+            while (true)
+            {
+                if (LokiPoe.IsInLoginScreen)
+                {
+                    // Offload auto login logic to a plugin.
+                    var logic = new Logic("hook_login_screen", this);
+                    foreach (var plugin in PluginManager.EnabledPlugins)
+                    {
+                        if (await plugin.Logic(logic) == LogicResult.Provided)
+                            break;
+                    }
+                }
+                else if (LokiPoe.IsInCharacterSelectionScreen)
+                {
+                    // Offload character selection logic to a plugin.
+                    var logic = new Logic("hook_character_selection", this);
+                    foreach (var plugin in PluginManager.EnabledPlugins)
+                    {
+                        if (await plugin.Logic(logic) == LogicResult.Provided)
+                            break;
+                    }
+                }
+                else if (LokiPoe.IsInGame)
+                {
+                    // To make things consistent, we once again allow user coorutine logic to preempt the bot base coroutine logic.
+                    // This was supported to a degree in 2.6, and in general with our bot bases. Technically, this probably should
+                    // be at the top of the while loop, but since the bot bases offload two sets of logic to plugins this way, this
+                    // hook is being placed here.
+                    var hooked = false;
+                    var logic = new Logic("hook_ingame", this);
+                    foreach (var plugin in PluginManager.EnabledPlugins)
+                    {
+                        if (await plugin.Logic(logic) == LogicResult.Provided)
+                        {
+                            hooked = true;
+                            break;
+                        }
+                    }
+
+                    if (!hooked)
+                    {
+                        // Wait for game pause
+                        if (LokiPoe.InstanceInfo.IsGamePaused)
+                        {
+                            Log.Debug("Waiting for game pause");
+                        }
+                        // Resurrect character if it is dead
+                        else if (LokiPoe.Me.IsDead && World.CurrentArea.Id != "HallsOfTheDead_League")
+                        {
+                            await ResurrectionLogic.Execute();
+                        }
+                        // What the bot does now is up to the registered tasks.
+                        else
+                        {
+                            await _taskManager.Run(TaskGroup.Enabled, RunBehavior.UntilHandled);
+                        }
+                    }
+                }
+                else
+                {
+                    // Most likely in a loading screen, which will cause us to block on the executor, 
+                    // but just in case we hit something else that would cause us to execute...
+                    await Coroutine.Sleep(1000);
+                    continue;
+                }
+
+                // End of the tick.
+                await Coroutine.Yield();
+            }
+            // ReSharper disable once FunctionNeverReturns
         }
         public string Author => "Lenson";
 
