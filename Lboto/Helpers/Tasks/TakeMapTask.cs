@@ -25,6 +25,7 @@ namespace Lboto.Helpers.Tasks
 
         public async Task<bool> Run()
         {
+            Log.Debug("[TakeMapTask] Im here");
             if (SkillsUi.IsOpened || AtlasSkillsUi.IsOpened)
                 return false;
 
@@ -60,7 +61,7 @@ namespace Lboto.Helpers.Tasks
             var mapPos = map.LocationTopLeft;
 
             // 1. Если не идентифицирована — применить Scroll of Wisdom
-            if (!map.IsIdentified && !map.IsCorrupted)
+            if (!map.IsIdentified)// && !map.IsCorrupted)
             {
                 if (HasCurrency(CurrencyNames.Wisdom))
                 {

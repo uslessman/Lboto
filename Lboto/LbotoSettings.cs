@@ -92,8 +92,8 @@ namespace Lboto
         private LbotoSettings()
             : base(GetSettingsFilePath(Configuration.Instance.Name, "Lboto.json")) { }
 
-        [JsonConverter(typeof(StringEnumConverter))]
-        public Dictionary<PauseTypeEnum, List<PauseData>> PauseDataCollection { get; set; } = new Dictionary<PauseTypeEnum, List<PauseData>>();
+        public Dictionary<PauseTypeEnum, List<PauseData>> PauseDataCollection { get; set; } = 
+        new Dictionary<PauseTypeEnum, List<PauseData>>();
     }
 
 }

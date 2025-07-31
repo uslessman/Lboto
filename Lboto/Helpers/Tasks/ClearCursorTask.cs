@@ -13,6 +13,7 @@ namespace Lboto.Helpers.Tasks
 
         public async Task<bool> Run()
         {
+            Log.Debug("[ClearCursorTask Run]");
             var mode = LokiPoe.InGameState.CursorItemOverlay.Mode;
 
             if (mode == LokiPoe.InGameState.CursorItemModes.VirtualMove ||

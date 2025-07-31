@@ -10,6 +10,7 @@ using log4net;
 using System;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using static DreamPoeBot.Loki.Game.LokiPoe;
 
 namespace Lboto
 {
@@ -30,10 +31,6 @@ namespace Lboto
         }
         private Coroutine _coroutine;
 
-        public static int RandomizeFlb(int rrange)
-        {
-            return Convert.ToInt32(DreamPoeBot.Loki.Common.MathEx.Random(-rrange, rrange));
-        }
 
         public void Deinitialize()
         {
@@ -42,8 +39,16 @@ namespace Lboto
 
         public void Initialize()
         {
-            LbotoSettings.Instance.MapTabs.Add("~price 333 divine");
-            LbotoSettings.Instance.CurrencyTabs.Add("Coin");
+            
+            
+            if (!LbotoSettings.Instance.MapTabs.Contains("~price 333 divine"))
+            {
+                LbotoSettings.Instance.MapTabs.Add("~price 333 divine");
+            }
+            if (!LbotoSettings.Instance.MapTabs.Contains("Coin"))
+            {
+                LbotoSettings.Instance.CurrencyTabs.Add("Coin");
+            }
         }
 
         public async Task<LogicResult> Logic(Logic logic)
@@ -79,6 +84,8 @@ namespace Lboto
             BotManager.MsBetweenTicks = 40;
             Log.Debug($"[Start] MsBetweenTicks: {BotManager.MsBetweenTicks}.");
             Log.Debug($"[Start] PlayerMover.Instance: {PlayerMoverManager.Current.GetType()}.");
+            Log.Debug($"[Start] NetworkingMode: {ConfigManager.NetworkingMode}.");
+            Log.Debug($"[Start] KeyPickup: {ConfigManager.KeyPickup}.");
 
 
             // Since this bot will be performing client actions, we need to enable the process hook manager.
@@ -129,6 +136,10 @@ namespace Lboto
         {
             Events.Tick();
             CombatAreaCache.Tick();
+            foreach (var _task in _taskManager.TaskList)
+            {
+                Log.Debug(_task.Name);
+            }
             _taskManager.Tick();
             PluginManager.Tick();
             RoutineManager.Tick();
@@ -145,6 +156,7 @@ namespace Lboto
             //_taskManager.Add(new DefenseAndFlaskTask());
             //_taskManager.Add(new LootItemTask());
             //_taskManager.Add(new PreCombatFollowTask());
+            _taskManager.Add(new TakeMapTask());
             _taskManager.Add(new CombatTask(50));
             _taskManager.Add(new PostCombatHookTask());
             //_taskManager.Add(new LevelGemsTask());
