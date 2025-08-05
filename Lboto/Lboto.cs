@@ -81,12 +81,8 @@ namespace Lboto
             LokiPoe.Input.Binding.Update();
 
             // Reset the default MsBetweenTicks on start.
-            BotManager.MsBetweenTicks = 40;
             Log.Debug($"[Start] MsBetweenTicks: {BotManager.MsBetweenTicks}.");
             Log.Debug($"[Start] PlayerMover.Instance: {PlayerMoverManager.Current.GetType()}.");
-            Log.Debug($"[Start] NetworkingMode: {ConfigManager.NetworkingMode}.");
-            Log.Debug($"[Start] KeyPickup: {ConfigManager.KeyPickup}.");
-
 
             // Since this bot will be performing client actions, we need to enable the process hook manager.
             LokiPoe.ProcessHookManager.Enable();
