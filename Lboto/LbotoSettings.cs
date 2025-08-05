@@ -1,19 +1,7 @@
 ﻿using DreamPoeBot.Loki;
 using DreamPoeBot.Loki.Common;
-using DreamPoeBot.Loki.Common.MVVM;
-using DreamPoeBot.Loki.Game;
-using DreamPoeBot.Loki.Game.GameData;
-using DreamPoeBot.Loki.Game.Objects;
 using Lboto.Helpers;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Lboto
 {
@@ -30,22 +18,22 @@ namespace Lboto
         /// <summary>
         /// Список табов с обычными картами
         /// </summary>
-        public List<string> MapTabs { get; set; } = new List<string> { "Maps" };
+        public List<string> MapTabs { get; set; } = new List<string> {  };
 
         /// <summary>
         /// Список табов с симулакрумами
         /// </summary>
-        public List<string> SimulacrumTabs { get; set; } = new List<string> { "Simulacrums" };
+        public List<string> SimulacrumTabs { get; set; } = new List<string> {  };
 
         /// <summary>
         /// Список табов с заражёнными картами (Blighted Maps)
         /// </summary>
-        public List<string> BlightedMapTabs { get; set; } = new List<string> { "Blighted Maps" };
+        public List<string> BlightedMapTabs { get; set; } = new List<string> {  };
 
         /// <summary>
         /// Список табов с картами под влиянием
         /// </summary>
-        public List<string> InfluencedMapTabs { get; set; } = new List<string> { "Influenced Maps" };
+        public List<string> InfluencedMapTabs { get; set; } = new List<string> {  };
 
         /// <summary>
         /// Таблист, которые следует игнорировать
@@ -55,7 +43,9 @@ namespace Lboto
         /// <summary>
         /// Список табов с валютой
         /// </summary>
-        public List<string> CurrencyTabs { get; set; } = new List<string> { "Currency" };
+        public List<string> CurrencyTabs { get; set; } = new List<string> { };
+
+        public List<string> FragmentTabs { get; set; } = new List<string> { };
 
         public double TownPauseDynamicFactor
         {

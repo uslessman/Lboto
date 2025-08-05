@@ -87,22 +87,46 @@ namespace Lboto.Helpers
 
         public static async Task<bool> For(Func<bool> condition, string desc, Func<int> step, int timeout = 3000)
         {
-            if (condition())
-                return true;
-
-            var timer = Stopwatch.StartNew();
-            while (timer.ElapsedMilliseconds < timeout)
+            try
             {
-                Log.Debug($"[Wait] Waiting for {desc} ({Math.Round(timer.ElapsedMilliseconds / 1000f, 2)}/{timeout / 1000f})");
+                Log.Debug($"[Wait] Start waiting for {desc} (timeout: {timeout}ms)");
 
-                if (condition())
+                if (SafeCheck(condition, desc))
                     return true;
 
-                await Coroutine.Sleep(step());
-            }
+                var timer = Stopwatch.StartNew();
+                while (timer.ElapsedMilliseconds < timeout)
+                {
+                    Log.Debug($"[Wait] Waiting for {desc} ({Math.Round(timer.ElapsedMilliseconds / 1000f, 2)}/{timeout / 1000f})");
 
-            Log.Error($"[Wait] Timeout waiting for {desc} after {timeout} ms.");
-            return false;
+                    if (SafeCheck(condition, desc))
+                        return true;
+
+                    await Coroutine.Sleep(step());
+                }
+
+                Log.Error($"[Wait] Timeout waiting for {desc} after {timeout} ms.");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[Wait] Exception while waiting for {desc}: {ex}");
+                return false;
+            }
+        }
+
+        private static bool SafeCheck(Func<bool> condition, string desc)
+        {
+            try
+            {
+                Log.Debug($"[Wait] Checking condition for {desc}");
+                return condition();
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[Wait] Condition threw exception during wait for {desc}: {ex}");
+                return false;
+            }
         }
 
         public static async Task Sleep(int ms)

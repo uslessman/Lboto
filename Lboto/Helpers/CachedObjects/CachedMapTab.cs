@@ -1,11 +1,8 @@
 ﻿using DreamPoeBot.Common;
 using DreamPoeBot.Loki.Game.GameData;
 using DreamPoeBot.Loki.Game.Objects;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static DreamPoeBot.Loki.Game.LokiPoe.InGameState;
 using static DreamPoeBot.Loki.Game.Objects.ModAffix;
 

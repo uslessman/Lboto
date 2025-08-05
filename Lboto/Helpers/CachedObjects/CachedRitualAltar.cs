@@ -1,12 +1,6 @@
-﻿using DreamPoeBot.Loki.Game.GameData;
-using DreamPoeBot.Loki.Game.Objects;
+﻿using DreamPoeBot.Loki.Game.Objects;
 using Lboto.Helpers.Positions;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Navigation;
 
 namespace Lboto.Helpers
 {

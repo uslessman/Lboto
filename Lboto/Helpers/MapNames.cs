@@ -561,8 +561,8 @@ namespace Lboto.Helpers
         [AreaId("MapWorldsGraveTrough")]
         public static readonly string GraveTrough;
 
-        [AreaId("MapWorldsColdRiver")]
-        public static readonly string ColdRiver;
+        //[AreaId("MapWorldsColdRiver")]
+        //public static readonly string ColdRiver;
 
         [AreaId("MapWorldsCrimsonTownship")]
         public static readonly string CrimsonTownship;

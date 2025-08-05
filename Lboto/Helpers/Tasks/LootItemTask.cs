@@ -1,19 +1,18 @@
-﻿using DreamPoeBot.Common;
+﻿using DreamPoeBot.BotFramework;
+using DreamPoeBot.Common;
 using DreamPoeBot.Loki.Bot;
-using DreamPoeBot.Loki.Game;
 using DreamPoeBot.Loki.Common;
+using DreamPoeBot.Loki.Controllers;
+using DreamPoeBot.Loki.Game;
 using DreamPoeBot.Loki.Game.GameData;
 using DreamPoeBot.Loki.Game.Objects;
+using Lboto.Helpers.CachedObjects;
+using Lboto.Helpers.Global;
+using Lboto.Helpers.Positions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DreamPoeBot.BotFramework;
-using DreamPoeBot.Loki.Controllers;
-using Lboto.Helpers.CachedObjects;
-using Lboto.Helpers.Global;
-using Lboto.Helpers.Positions;
-using Lboto.Helpers;
 
 namespace Lboto.Helpers.Tasks
 {

@@ -3,6 +3,7 @@ using DreamPoeBot.Loki.Common;
 using DreamPoeBot.Loki.Game;
 using DreamPoeBot.Loki.Game.GameData;
 using DreamPoeBot.Loki.Game.Objects;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -65,6 +66,26 @@ namespace Lboto.Helpers
             Portal portal = null;
             await Wait.For(() => (portal = PortalInRangeOf(40)) != null, "portal spawning");
             return portal;
+        }
+
+        public static async Task<bool> TryTo(Func<Task<bool>> action, string desc, int attempts, int interval = 1000)
+        {
+            int i = 1;
+            while (i <= attempts && LokiPoe.IsInGame && !((Actor)LokiPoe.Me).IsDead)
+            {
+                if (desc != null)
+                {
+                    Log.Debug($"[TryTo] {desc} attempt: {i}/{attempts}");
+                }
+                if (await action())
+                {
+                    return true;
+                }
+                await Wait.SleepSafe(interval);
+                int num = i + 1;
+                i = num;
+            }
+            return false;
         }
 
         private static Portal PortalInRangeOf(int range)

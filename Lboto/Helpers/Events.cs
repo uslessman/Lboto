@@ -1,7 +1,10 @@
-﻿using DreamPoeBot.Loki.Game;
+﻿using DreamPoeBot.Loki.Bot;
+using DreamPoeBot.Loki.Game;
 using DreamPoeBot.Loki.Game.GameData;
+using DreamPoeBot.Loki.Common;
 using Lboto.Helpers.CachedObjects;
 using Lboto.Helpers.Global;
+using log4net;
 using System;
 using System.Diagnostics.CodeAnalysis;
 
@@ -9,16 +12,17 @@ namespace Lboto.Helpers
 {
     public static class Events
     {
-        public static event Action IngameBotStart;
         public static event EventHandler<AreaChangedArgs> AreaChanged;
         public static event EventHandler<AreaChangedArgs> CombatAreaChanged;
         public static event Action<int> PlayerDied;
         public static event Action<int> PlayerLeveled;
         public static event Action<CachedItem> ItemLooted;
-        public static event Action<CachedItem> ItemStashed;
-        public static event EventHandler<ItemsSoldArgs> ItemsSold;
+        public static event Action<CachedItem> ItemStashedEvent;
+        public static event Action IngameBotStart;
+        public static event Action PlayerResurrected;
+        public static event Action<CachedItem> ItemLootedEvent;
+        public static event EventHandler<ItemsSoldArgs> ItemsSoldEvent;
 
-        private static bool _pendingStart = true;
         private static bool _wasDead;
         private static string _cachedName;
         private static int _cachedLevel;
@@ -27,14 +31,26 @@ namespace Lboto.Helpers
         private static uint _lastCombatHash;
         private static DatWorldAreaWrapper _lastCombatArea;
 
+        public static readonly ILog Log = Logger.GetLoggerInstanceForType();
+
+        private static bool _checkStart;
+        public static void Start()
+        {
+            _checkStart = true;
+        }
+
         public static void Tick()
         {
             if (!LokiPoe.IsInGame) return;
 
-            if (_pendingStart)
+            if (!LokiPoe.IsInGame)
+                return;
+
+            if (_checkStart)
             {
-                _pendingStart = false;
-                IngameBotStart?.Invoke();
+                _checkStart = false;
+                Log.Info("[Events] Ingame bot start.");
+                Utility.BroadcastMessage(null, Messages.IngameBotStart);
             }
 
             var currentHash = LokiPoe.LocalData.AreaHash;
@@ -96,17 +112,58 @@ namespace Lboto.Helpers
 
         public static void RaiseItemStashed(CachedItem item)
         {
-            ItemStashed?.Invoke(item);
+            ItemStashedEvent?.Invoke(item);
         }
 
         public static void RaiseItemsSold(ItemsSoldArgs args)
         {
-            ItemsSold?.Invoke(null, args);
+            ItemsSoldEvent?.Invoke(null, args);
+        }
+
+        public static void FireEventsFromMessage(Message message)
+        {
+            switch (message.Id)
+            {
+                case Messages.IngameBotStart:
+                    IngameBotStart?.Invoke();
+                    return;
+
+                case Messages.AreaChanged:
+                    AreaChanged?.Invoke(null, new AreaChangedArgs(message));
+                    return;
+
+                case Messages.CombatAreaChanged:
+                    CombatAreaChanged?.Invoke(null, new AreaChangedArgs(message));
+                    return;
+
+                case Messages.PlayerDied:
+                    PlayerDied?.Invoke(message.GetInput<int>());
+                    return;
+
+                case Messages.PlayerResurrected:
+                    PlayerResurrected?.Invoke();
+                    return;
+
+                case Messages.PlayerLeveled:
+                    PlayerLeveled?.Invoke(message.GetInput<int>());
+                    return;
+
+                case Messages.ItemLootedEvent:
+                    ItemLootedEvent?.Invoke(message.GetInput<CachedItem>());
+                    return;
+
+                case Messages.ItemStashedEvent:
+                    ItemStashedEvent?.Invoke(message.GetInput<CachedItem>());
+                    return;
+
+                case Messages.ItemsSoldEvent:
+                    ItemsSoldEvent?.Invoke(null, new ItemsSoldArgs(message));
+                    return;
+            }
         }
 
         public static void Reset()
-        {
-            _pendingStart = true;
+        {           
             _lastAreaHash = 0;
             _lastArea = null;
             _lastCombatHash = 0;

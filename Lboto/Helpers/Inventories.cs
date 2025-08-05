@@ -1,11 +1,11 @@
 ﻿
 using DreamPoeBot.Common;
+using DreamPoeBot.Loki;
 using DreamPoeBot.Loki.Bot;
 using DreamPoeBot.Loki.Common;
 using DreamPoeBot.Loki.Game;
 using DreamPoeBot.Loki.Game.GameData;
 using DreamPoeBot.Loki.Game.Objects;
-using DreamPoeBot.Loki.RemoteMemoryObjects;
 using Lboto.Helpers;
 using Lboto.Helpers.CachedObjects;
 using Lboto.Helpers.Global;
@@ -13,13 +13,17 @@ using Lboto.Helpers.Positions;
 using Lboto.Helpers.Tasks;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using static DreamPoeBot.Loki.Game.LokiPoe;
 using static DreamPoeBot.Loki.Game.LokiPoe.InGameState;
-using static DreamPoeBot.Loki.Game.LokiPoe.InGameState.GuildStashUi.FragmentTab;
+//using static DreamPoeBot.Loki.Game.LokiPoe.InGameState.GuildStashUi;
+//using static DreamPoeBot.Loki.Game.LokiPoe.InGameState.GuildStashUi.FragmentTab;
 using static DreamPoeBot.Loki.Game.LokiPoe.InGameState.StashUi;
 using static DreamPoeBot.Loki.Game.LokiPoe.InGameState.StashUi.MapsTab;
+using static DreamPoeBot.Loki.Game.LokiPoe.InGameState.StashUi.FragmentTab;
 using Cursor = DreamPoeBot.Loki.Game.LokiPoe.InGameState.CursorItemOverlay;
 using InventoryUi = DreamPoeBot.Loki.Game.LokiPoe.InGameState.InventoryUi;
 using StashUi = DreamPoeBot.Loki.Game.LokiPoe.InGameState.StashUi;
@@ -40,7 +44,13 @@ namespace Lboto.Helpers
 
         public static Dictionary<string, bool> AvailableCurrency => _availableCurrency;
 
-
+        public enum ClearCursorResults
+        {
+            None,
+            InventoryNotOpened,
+            NoSpaceInInventory,
+            TriesReached
+        }
         //public static async Task<bool> OpenStash()
         //{
         //    if (StashUi.IsOpened)
@@ -73,7 +83,131 @@ namespace Lboto.Helpers
         //    return true;
         //}
 
-        public static async Task<bool> OpenInventory()
+        public static async Task<bool> SplitAndPlaceItemInMainInventory(InventoryControlWrapper wrapper, Item item, int pickupAmount)
+        {
+            if (!((RemoteMemoryObject)(object)wrapper == (RemoteMemoryObject)null))
+            {
+                Log.Debug($"[SplitAndPlaceItemInMainInventory] Spliting up stacks. Getting {pickupAmount} {item.FullName}. Count in stack: {item.StackCount}");
+                SplitStackResult error;
+                if (!wrapper.HasCustomTabOverride)
+                {
+                    if (pickupAmount >= item.StackCount || pickupAmount >= item.MaxStackCount)
+                    {
+                        return await FastMoveFromStashTab(item.LocationTopLeft);
+                    }
+                    error = wrapper.SplitStack(item.LocalId, pickupAmount, true);
+                }
+                else
+                {
+                    if (pickupAmount >= item.StackCount || pickupAmount >= item.MaxStackCount)
+                    {
+                        return await FastMoveCustomTabItem(wrapper);
+                    }
+                    error = wrapper.SplitStack(pickupAmount, true);
+                }
+                if ((int)error > 0)
+                {
+                    Log.Error($"[SplitAndPlaceItemInMainInventory] Failed to split failed. Split Error: {error}");
+                    return false;
+                }
+                await WaitForCursorToHaveItem();
+                await Coroutines.LatencyWait();
+                await ClearCursorLite();
+                return true;
+            }
+            throw new ArgumentNullException("wrapper");
+        }
+
+        public static async Task<ClearCursorResults> ClearCursorLite(int maxTries = 3)
+        {
+            CursorItemModes cursMode = CursorItemOverlay.Mode;
+            if ((int)cursMode == 0)
+            {
+                Log.Debug("[ClearCursorLite] Nothing is on cursor, continue execution");
+                return ClearCursorResults.None;
+            }
+            if ((int)cursMode == 3 || (int)cursMode == 2)
+            {
+                Log.Debug("[ClearCursorLite] VirtualMode detected, pressing escape to clear");
+                Input.SimulateKeyEvent(Keys.Escape, true, false, false, Keys.None);
+                return ClearCursorResults.None;
+            }
+            Item cursorhasitem = CursorItemOverlay.Item;
+            int attempts = 0;
+            int col;
+            int row;
+            while ((RemoteMemoryObject)(object)cursorhasitem != (RemoteMemoryObject)null && attempts < maxTries)
+            {
+                if (attempts <= maxTries)
+                {
+                    if (!InventoryUi.IsOpened)
+                    {
+                        await OpenInventory();
+                        await Coroutines.LatencyWait();
+                        if (!InventoryUi.IsOpened)
+                        {
+                            return ClearCursorResults.InventoryNotOpened;
+                        }
+                    }
+
+                    if (InventoryUi.InventoryControl_Main.Inventory.CanFitItem(cursorhasitem.Size, out col, out row))
+                    {
+                        PlaceCursorIntoResult res = InventoryUi.InventoryControl_Main.PlaceCursorInto(col, row, false, true);
+                        if ((int)res != 0)
+                        {
+                            Log.Debug($"[ClearCursorLite] Placing item into inventory failed, Err : {res}");
+                            PlaceCursorIntoResult val = res;
+                            PlaceCursorIntoResult val2 = val;
+                            if ((int)val2 != 2)
+                            {
+                                if ((int)val2 == 4)
+                                {
+                                    return ClearCursorResults.NoSpaceInInventory;
+                                }
+                                await Wait.SleepSafe(3000);
+                                await Coroutines.LatencyWait();
+                                await Coroutines.ReactionWait();
+                                cursorhasitem = CursorItemOverlay.Item;
+                                attempts++;
+                                continue;
+                            }
+                            return ClearCursorResults.None;
+                        }
+                        if (!(await WaitForCursorToBeEmpty()))
+                        {
+                            Log.Error("[ClearCursorLite] WaitForCursorToBeEmpty failed.");
+                        }
+                        await Coroutines.ReactionWait();
+                        return ClearCursorResults.None;
+                    }
+                    Log.Error("[ClearCursorLite] Now stopping the bot because it cannot continue.");
+                    BotManager.Stop(new StopReasonData("invenory_cant_fit", "Inventory can't fit item", (object)null), false);
+                    return ClearCursorResults.NoSpaceInInventory;
+                }
+                return ClearCursorResults.TriesReached;
+            }
+            return ClearCursorResults.None;
+        }
+
+        internal static async Task<bool> WaitForCursorToHaveItem(int timeout = 5000)
+        {
+            Stopwatch sw = Stopwatch.StartNew();
+            do
+            {
+                if (!InstanceInfo.GetPlayerInventoryItemsBySlot((InventorySlot)12).Any())
+                {
+                    Log.Debug("[WaitForCursorToHaveItem] Waiting for the cursor to have an item.");
+                    await Coroutines.LatencyWait();
+                    continue;
+                }
+                return true;
+            }
+            while (sw.ElapsedMilliseconds <= timeout);
+            Log.Error("[WaitForCursorToHaveItem] Timeout while waiting for the cursor to contain an item.");
+            return false;
+        }
+
+        internal static async Task<bool> OpenInventory()
         {
             if (InventoryUi.IsOpened && !LokiPoe.InGameState.PurchaseUi.IsOpened && !LokiPoe.InGameState.SellUi.IsOpened)
                 return true;
@@ -95,7 +229,7 @@ namespace Lboto.Helpers
 
         #region Extension methods
 
-        public static async Task<bool> PlaceItemFromCursor(this InventoryControlWrapper inventory, Vector2i pos)
+        internal static async Task<bool> PlaceItemFromCursor(this InventoryControlWrapper inventory, Vector2i pos)
         {
             var cursorItem = Cursor.Item;
             if (cursorItem == null)
@@ -148,10 +282,10 @@ namespace Lboto.Helpers
             }, "cursor item change after place");
         }
         #endregion
-        
+
         #region Properties
 
-        public static List<Item> StashTabItems => StashUi.InventoryControl.Inventory.Items;
+        internal static List<Item> StashTabItems => StashUi.InventoryControl.Inventory.Items;
 
         #endregion
 
@@ -162,7 +296,7 @@ namespace Lboto.Helpers
         /// </summary>
         /// <param name="fullScan">Whether to perform a full scan of all maps</param>
         /// <returns>Cached map tab information</returns>
-        public static async Task<CachedMaps.MapTabInfo> CacheMapTabs(bool fullScan = false)
+        internal static async Task<CachedMaps.MapTabInfo> CacheMapTabs(bool fullScan = false)
         {
             var mapTiers = Enumerable.Range(1, 18)
                 .Where(tier => tier != 17) // Skip tier 17 (unique maps handled separately)
@@ -193,7 +327,7 @@ namespace Lboto.Helpers
             return new CachedMaps.MapTabInfo(cachedMapTiers, allCachedMaps);
         }
 
-        private static List<string> GetAllMapTabNames()
+        internal static List<string> GetAllMapTabNames()
         {
             var mapTabs = LbotoSettings.Instance.MapTabs;
             var simulacrumTabs = LbotoSettings.Instance.SimulacrumTabs;
@@ -207,7 +341,7 @@ namespace Lboto.Helpers
                          .ToList();
         }
 
-        private static async Task ProcessRegularMapTab(int[] mapTiers, List<CachedMaps.MapTierInfo> cachedMapTiers, HashSet<CachedMapItem> allCachedMaps)
+        internal static async Task ProcessRegularMapTab(int[] mapTiers, List<CachedMaps.MapTierInfo> cachedMapTiers, HashSet<CachedMapItem> allCachedMaps)
         {
             if (StashUi.StashTabInfo.IsPremiumSpecial)
             {
@@ -240,7 +374,7 @@ namespace Lboto.Helpers
             }
         }
 
-        private static async Task ProcessPremiumMapTab(int[] mapTiers, List<CachedMaps.MapTierInfo> cachedMapTiers, HashSet<CachedMapItem> allCachedMaps, bool fullScan)
+        internal static async Task ProcessPremiumMapTab(int[] mapTiers, List<CachedMaps.MapTierInfo> cachedMapTiers, HashSet<CachedMapItem> allCachedMaps, bool fullScan)
         {
             foreach (int tier in mapTiers)
             {
@@ -262,7 +396,7 @@ namespace Lboto.Helpers
             }
         }
 
-        private static async Task ProcessMapsForFullScan(HashSet<MapInfo> availableMaps, HashSet<CachedMapItem> allCachedMaps)
+        internal static async Task ProcessMapsForFullScan(HashSet<MapInfo> availableMaps, HashSet<CachedMapItem> allCachedMaps)
         {
             foreach (var mapInfo in availableMaps)
             {
@@ -318,7 +452,7 @@ namespace Lboto.Helpers
         /// </summary>
         /// <param name="cachedMap">The cached map item to retrieve</param>
         /// <returns>The map item in inventory, or null if failed</returns>
-        public static async Task<Item> TakeMapFromStash(CachedMapItem cachedMap)
+        internal static async Task<Item> TakeMapFromStash(CachedMapItem cachedMap)
         {
             if (!await OpenStashTab(cachedMap.StashTab, "TakeMapFromStash"))
                 return null;
@@ -372,7 +506,7 @@ namespace Lboto.Helpers
             }
         }
 
-        private static async Task<Item> TakeMapFromPremiumTab(CachedMapItem cachedMap)
+        internal static async Task<Item> TakeMapFromPremiumTab(CachedMapItem cachedMap)
         {
             int targetTier = cachedMap.MapTier;
             string targetName = cachedMap.Name;
@@ -436,7 +570,7 @@ namespace Lboto.Helpers
             return targetMapItem;
         }
 
-        private static async Task<Item> TakeMapFromRegularTab(CachedMapItem cachedMap)
+        internal static async Task<Item> TakeMapFromRegularTab(CachedMapItem cachedMap)
         {
             var targetMapItem = StashUi.InventoryControl.Inventory.Items.FirstOrDefault(item =>
                 AreMapStatsEqual(item, cachedMap) && item.FullName.Equals(cachedMap.FullName));
@@ -450,18 +584,18 @@ namespace Lboto.Helpers
             return moveSuccessful ? targetMapItem : null;
         }
 
-        private static void RemoveMapFromCache(CachedMapItem cachedMap)
+        internal static void RemoveMapFromCache(CachedMapItem cachedMap)
         {
             CachedMaps.Instance.MapCache.Maps.Remove(cachedMap);
         }
 
-        private static void InvalidateMapCache()
+        internal static void InvalidateMapCache()
         {
             CachedMaps.Instance.MapCache = null;
             CachedMaps.Cached = false;
         }
 
-        private static bool AreMapStatsEqual(Item item, CachedMapItem cachedMap)
+        internal static bool AreMapStatsEqual(Item item, CachedMapItem cachedMap)
         {
             var itemStats = item.Stats.OrderBy(s => s.Key)
                                      .Select(stat => $"{stat.Key}[{stat.Value}]")
@@ -519,7 +653,7 @@ namespace Lboto.Helpers
             return true;
         }
 
-        private static Item FindOrbInInventory(string orbName)
+        internal static Item FindOrbInInventory(string orbName)
         {
             // Handle Alchemy/Binding orb preference for white maps
             if (orbName.Equals(CurrencyNames.Alchemy) || orbName.Equals(CurrencyNames.Binding))
@@ -536,7 +670,7 @@ namespace Lboto.Helpers
                 .FirstOrDefault(item => item.Name.Equals(orbName));
         }
 
-        private static async Task<Item> GetOrbFromStash(string orbName)
+        internal static async Task<Item> GetOrbFromStash(string orbName)
         {
             if (!await FindTabWithCurrency(orbName))
             {
@@ -553,7 +687,7 @@ namespace Lboto.Helpers
             return await GetOrbFromRegularTab(orbName);
         }
 
-        private static async Task<Item> GetOrbFromCurrencyTab(string orbName)
+        internal static async Task<Item> GetOrbFromCurrencyTab(string orbName)
         {
             var currencyControl = GetControlWithCurrency(orbName);
 
@@ -600,7 +734,7 @@ namespace Lboto.Helpers
             }
         }
 
-        private static async Task<Item> GetOrbFromRegularTab(string orbName)
+        internal static async Task<Item> GetOrbFromRegularTab(string orbName)
         {
             var orbItem = StashTabItems.FirstOrDefault(item => item.Name == orbName);
             if (orbItem == null) return null;
@@ -620,7 +754,7 @@ namespace Lboto.Helpers
         /// <summary>
         /// Opens a specific stash tab
         /// </summary>
-        private static async Task<bool> OpenStashTab(string tabName, string caller = "")
+        internal static async Task<bool> OpenStashTab(string tabName, string caller = "")
         {
             if (!await OpenStash()) return false;
 
@@ -701,7 +835,7 @@ namespace Lboto.Helpers
         /// <summary>
         /// Opens the stash
         /// </summary>
-        private static async Task<bool> OpenStash()
+        internal static async Task<bool> OpenStash()
         {
             if (StashUi.IsOpened) return true;
 
@@ -783,6 +917,68 @@ namespace Lboto.Helpers
 
             return true;
         }
+        /// <summary>
+        /// Fast moves an item from Inventory to Wherever.
+        /// </summary>
+        public static async Task<bool> FastMoveFromInventory(Vector2i itemPos, bool waitForStackDecrease = false, bool ignoreAffinity = false)
+        {
+            // Находим предмет в инвентаре по указанной позиции
+            Item item = InventoryUi.InventoryControl_Main.Inventory.FindItemByPos(itemPos);
+            if (item == null)
+            {
+                Log.Error($"[FastMoveFromInventory] Не удалось найти предмет на позиции {itemPos} в инвентаре игрока.");
+                return false;
+            }
+
+            // Сохраняем начальное количество в стопке и имя предмета для логирования
+            int initialStackCount = item.StackCount;
+            string itemName = item.FullName;
+            string logStr = $"[FastMoveFromInventory] Быстрое перемещение \"{itemName}\" с позиции {itemPos} из инвентаря. Игнорировать affinity? {ignoreAffinity}";
+            if (initialStackCount > 1)
+            {
+                logStr = $"[FastMoveFromInventory] Быстрое перемещение \"{itemName}\"({initialStackCount}) с позиции {itemPos} из инвентаря. Игнорировать affinity? {ignoreAffinity}";
+            }
+            Log.Debug(logStr);
+
+            // Выполняем быстрое перемещение
+            FastMoveResult err;
+            if (!ignoreAffinity)
+            {
+                // Обычное быстрое перемещение с учетом affinity
+                err = InventoryUi.InventoryControl_Main.FastMove(item.LocalId, true, true);
+            }
+            else
+            {
+                // Игнорируем affinity, эмулируя удержание клавиши Shift
+                ProcessHookManager.ClearAllKeyStates();
+                ProcessHookManager.SetKeyState(Keys.ShiftKey, short.MinValue, Keys.None);
+                err = InventoryUi.InventoryControl_Main.FastMove(item.LocalId, true, true, true);
+                ProcessHookManager.SetKeyState(Keys.ShiftKey, (short)0, Keys.None);
+            }
+
+            // Проверяем результат перемещения
+            if (err != FastMoveResult.None)
+            {
+                Log.Error($"[FastMoveFromInventory] Ошибка быстрого перемещения: \"{err}\".");
+                return false;
+            }
+
+            // Ожидаем завершения перемещения
+            if (waitForStackDecrease)
+            {
+                return await Wait.For(() =>
+                    InventoryUi.InventoryControl_Main.Inventory.FindItemByPos(itemPos) == null ||
+                    InventoryUi.InventoryControl_Main.Inventory.FindItemByPos(itemPos).StackCount != initialStackCount,
+                    "быстрое перемещение из инвентаря", 30);
+            }
+            else
+            {
+                return await Wait.For(() =>
+                    InventoryUi.InventoryControl_Main.Inventory.FindItemByPos(itemPos) == null,
+                    "быстрое перемещение из инвентаря", 30);
+            }
+        }
+
 
         /// <summary>
         /// Gets the stash object from cache or game world
@@ -801,7 +997,7 @@ namespace Lboto.Helpers
         /// <summary>
         /// Finds a tab containing the specified currency
         /// </summary>
-        private static async Task<bool> FindTabWithCurrency(string currencyName)
+        internal static async Task<bool> FindTabWithCurrency(string currencyName)
         {
             var currencyTabs = new List<string>(LbotoSettings.Instance.CurrencyTabs);
 
@@ -834,10 +1030,21 @@ namespace Lboto.Helpers
             return false;
         }
 
+        internal static async Task<bool> FindTabWithFragments()
+        {
+            var _fragmentTabs = new List<string>(LbotoSettings.Instance.FragmentTabs);
+
+            foreach (string tabName in _fragmentTabs)
+            {
+                if (!await OpenStashTab(tabName, "FindTabWithCurrency")) continue;
+            }
+            return true;
+        }
+
         /// <summary>
         /// Gets the amount of specified currency in current stash tab
         /// </summary>
-        private static int GetCurrencyAmountInStashTab(string currencyName)
+        internal static int GetCurrencyAmountInStashTab(string currencyName)
         {
             int totalAmount = 0;
             var tabType = StashUi.StashTabInfo.TabType;
@@ -890,7 +1097,7 @@ namespace Lboto.Helpers
         /// <summary>
         /// Gets all controls containing the specified currency
         /// </summary>
-        private static List<InventoryControlWrapper> GetControlsWithCurrency(string currencyName)
+        internal static List<InventoryControlWrapper> GetControlsWithCurrency(string currencyName)
         {
             var controls = new List<InventoryControlWrapper>();
             var tabType = StashUi.StashTabInfo.TabType;
@@ -971,7 +1178,7 @@ namespace Lboto.Helpers
         /// <summary>
         /// Fast moves an item from stash tab to inventory
         /// </summary>
-        private static async Task<bool> FastMoveFromStashTab(Vector2i itemPosition)
+        internal static async Task<bool> FastMoveFromStashTab(Vector2i itemPosition)
         {
             string tabName = StashUi.TabControl.CurrentTabName;
             var item = StashUi.InventoryControl.Inventory.FindItemByPos(itemPosition);
@@ -1015,7 +1222,7 @@ namespace Lboto.Helpers
         /// <summary>
         /// Fast moves an item from custom tab to inventory
         /// </summary>
-        private static async Task<bool> FastMoveCustomTabItem(InventoryControlWrapper control)
+        internal static async Task<bool> FastMoveCustomTabItem(InventoryControlWrapper control)
         {
             if (control == null)
             {
@@ -1061,7 +1268,7 @@ namespace Lboto.Helpers
         /// <summary>
         /// Picks an item to cursor from inventory control
         /// </summary>
-        private static async Task<bool> PickItemToCursor(InventoryControlWrapper inventory, Vector2i itemPosition, bool rightClick = false)
+        internal static async Task<bool> PickItemToCursor(InventoryControlWrapper inventory, Vector2i itemPosition, bool rightClick = false)
         {
             var item = inventory.Inventory.FindItemByPos(itemPosition);
             if (item == null)
@@ -1097,7 +1304,7 @@ namespace Lboto.Helpers
         /// <summary>
         /// Waits for cursor to be empty
         /// </summary>
-        private static async Task<bool> WaitForCursorToBeEmpty(int timeout = 5000)
+        internal static async Task<bool> WaitForCursorToBeEmpty(int timeout = 5000)
         {
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 

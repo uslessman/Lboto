@@ -4,10 +4,7 @@ using DreamPoeBot.Loki.Game.GameData;
 using DreamPoeBot.Loki.Game.Objects;
 using Lboto.Helpers;
 using log4net;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using static DreamPoeBot.Loki.Game.LokiPoe.InGameState;
 
@@ -23,9 +20,15 @@ namespace Lboto.Helpers.Tasks
 
         private static readonly ILog Log = Logger.GetLoggerInstanceForType();
 
+        public static bool Executed = false;
+
         public async Task<bool> Run()
         {
-            Log.Debug("[TakeMapTask] Im here");
+            if (Executed)
+            {
+                return false;
+            }
+            //Log.Debug("[TakeMapTask] Im here");
             if (SkillsUi.IsOpened || AtlasSkillsUi.IsOpened)
                 return false;
 
@@ -46,10 +49,11 @@ namespace Lboto.Helpers.Tasks
                     return true;
                 }
 
-                var anyMap = cachedMap.Maps.FirstOrDefault();
+                var anyMap = cachedMap.Maps.FirstOrDefault(x => !x.Name.ContainsIgnorecase("blighted")); //we don't want blighted maps
                 if (anyMap == null)
                 {
                     Log.Error("[TakeMapTask] Failed to find map.");
+                    BotManager.Stop(new StopReasonData("no_maps", "No maps available in stash", null), false);
                     return true;
                 }
 
@@ -72,6 +76,7 @@ namespace Lboto.Helpers.Tasks
                 else
                 {
                     Log.Error("[TakeMapTask] No Scrolls of Wisdom.");
+                    Executed = true;
                     return true;
                 }
             }
@@ -88,12 +93,15 @@ namespace Lboto.Helpers.Tasks
                 else
                 {
                     Log.Error("[TakeMapTask] No Orbs of Scouring.");
-                    return true;
+                    Executed = true;
+                    return false;
                 }
             }
 
             Log.Warn($"[TakeMapTask] Map is ready: {map.Name} (Rarity: {map.Rarity})");
-//!            OpenMapTask.Enabled = true;
+            OpenMapTask.Enabled = true;
+            //MaaanJustOpenDatMaps.Enabled = true;
+            Executed = true;
             return false;
         }
 
@@ -108,6 +116,33 @@ namespace Lboto.Helpers.Tasks
         private static bool HasCurrency(string name)
         {
             return Inventories.InventoryItems.Any(i => i.Name == name || i.FullName == name);
+        }
+
+        internal static string ScarabType(Item item)
+        {
+            string fullName = item.FullName;
+
+            // Handle "Horned Scarab of X" case - return X
+            if (fullName.StartsWith("Horned Scarab of "))
+            {
+                return fullName.Substring("Horned Scarab of ".Length);
+            }
+
+            // Handle "Scarab of X" case - return X
+            if (fullName.StartsWith("Scarab of "))
+            {
+                return fullName.Substring("Scarab of ".Length);
+            }
+
+            // Handle standard cases - return first word before "Scarab"
+            int scarabIndex = fullName.IndexOf("Scarab");
+            if (scarabIndex > 0)
+            {
+                return fullName.Substring(0, scarabIndex).Trim();
+            }
+
+            // Fallback for unexpected cases
+            return fullName.Replace("Scarab", "").Trim();
         }
     }
 

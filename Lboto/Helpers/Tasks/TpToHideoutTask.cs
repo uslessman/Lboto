@@ -1,15 +1,8 @@
-﻿using DreamPoeBot.Common;
-using DreamPoeBot.Loki.Bot;
+﻿using DreamPoeBot.Loki.Bot;
 using DreamPoeBot.Loki.Common;
-using DreamPoeBot.Loki.Coroutine;
 using DreamPoeBot.Loki.Game;
 using DreamPoeBot.Loki.Game.Objects;
-using log4net;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Lboto.Helpers.Tasks

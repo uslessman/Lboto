@@ -8,8 +8,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using static DreamPoeBot.Loki.Game.LokiPoe.InGameState.StashUi.MapsTab;
 
 namespace Lboto.Helpers
@@ -143,21 +141,21 @@ namespace Lboto.Helpers
                     if (mapTabInfo != null)
                     {
                         MapCache = mapTabInfo;
-                        Log.Warn("[MapBotEx] Map cache loaded.");
+                        Log.Warn("[MapBot] Map cache loaded.");
                     }
                     else
                     {
-                        Log.Error("[MapBotEx] Fail to load \"MapCache.json\". Cache is corrupted.");
+                        Log.Error("[MapBot] Fail to load \"MapCache.json\". Cache is corrupted.");
                     }
                 }
                 else
                 {
-                    Log.Error("[MapBotEx] Fail to load \"MapCache.json\". File is empty.");
+                    Log.Error("[MapBot] Fail to load \"MapCache.json\". File is empty.");
                 }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Log.Error("[MapBotEx] " + ex.Message);
+                Log.Error("[MapBot] " + e.Message);
             }
         }
 
@@ -175,15 +173,15 @@ namespace Lboto.Helpers
                 mapTabInfo_0.Maps = mapTabInfo_0.Maps.OrderBy((CachedMapItem m) => m.StashTab).ToHashSet();
                 string contents = JsonConvert.SerializeObject((object)mapTabInfo_0, (Formatting)1);
                 File.WriteAllText(string_0, contents);
-                Log.Warn("[MapBotEx] \"MapCache.json\" saved.");
+                Log.Warn("[MapBot] \"MapCache.json\" saved.");
             };
-            Log.Warn("[MapBotEx] Saving Map Cache!");
+            Log.Warn("[MapBot] Saving Map Cache!");
             backgroundWorker.RunWorkerAsync();
         }
 
         static CachedMaps()
         {
-            string_0 = Path.Combine(Configuration.Instance.Path, "MapBotEx", "MapCache.json");
+            string_0 = Path.Combine(Configuration.Instance.Path, "MapBot", "MapCache.json");
         }
     }
 
